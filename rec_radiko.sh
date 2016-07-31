@@ -29,43 +29,41 @@ fi
 # radiko premium
 ###
 if [ $mail ]; then
-  wget -q --save-cookie=$cookiefile \
-       --keep-session-cookies \
-       --post-data="mail=$mail&pass=$pass" \
-       https://radiko.jp/ap/member/login/login
+	wget -q --save-cookie=$cookiefile \
+		 --keep-session-cookies \
+		 --post-data="mail=$mail&pass=$pass" \
+		 https://radiko.jp/ap/member/login/login
 
-  if [ ! -f $cookiefile ]; then
-    echo "failed login"
-    exit 1
-  fi
+	if [ ! -f $cookiefile ]; then
+    	echo "failed login"
+    	exit 1
+	fi
 fi
 
 #
 # get player
 #
 if [ ! -f $playerfile ]; then
-  wget -q -O $playerfile $playerurl
-
-  if [ $? -ne 0 ]; then
-    echo "failed get player"
-    exit 1
-  fi
+	wget -q -O $playerfile $playerurl
+	if [ $? -ne 0 ]; then
+    	echo "failed get player"
+    	exit 1
+	fi
 fi
 
 #
 # get keydata (need swftool)
 #
 if [ ! -f $keyfile ]; then
-  swfextract -b 14 $playerfile -o $keyfile
-
-  if [ ! -f $keyfile ]; then
-    echo "failed get keydata"
-    exit 1
-  fi
+	swfextract -b 14 $playerfile -o $keyfile
+	if [ ! -f $keyfile ]; then
+		echo "failed get keydata"
+		exit 1
+	fi
 fi
 
 if [ -f auth1_fms ]; then
-  rm -f auth1_fms
+	rm -f auth1_fms
 fi
 
 #
@@ -84,8 +82,8 @@ wget -q \
      https://radiko.jp/v2/api/auth1_fms
 
 if [ $? -ne 0 ]; then
-  echo "failed auth1 process"
-  exit 1
+	echo "failed auth1 process"
+	exit 1
 fi
 
 #
@@ -94,15 +92,13 @@ fi
 authtoken=`perl -ne 'print $1 if(/x-radiko-authtoken: ([\w-]+)/i)' auth1_fms`
 offset=`perl -ne 'print $1 if(/x-radiko-keyoffset: (\d+)/i)' auth1_fms`
 length=`perl -ne 'print $1 if(/x-radiko-keylength: (\d+)/i)' auth1_fms`
-
 partialkey=`dd if=$keyfile bs=1 skip=${offset} count=${length} 2> /dev/null | base64`
-
 echo "authtoken: ${authtoken} \noffset: ${offset} length: ${length} \npartialkey: $partialkey"
 
 rm -f auth1_fms
 
 if [ -f auth2_fms ]; then
-  rm -f auth2_fms
+	rm -f auth2_fms
 fi
 
 #
@@ -122,8 +118,8 @@ wget -q \
      https://radiko.jp/v2/api/auth2_fms
 
 if [ $? -ne 0 -o ! -f auth2_fms ]; then
-  echo "failed auth2 process"
-  exit 1
+	echo "failed auth2 process"
+	exit 1
 fi
 
 echo "authentication success"
@@ -136,9 +132,8 @@ rm -f auth2_fms
 #
 # get stream-url
 #
-
 if [ -f ${channel}.xml ]; then
-  rm -f ${channel}.xml
+	rm -f ${channel}.xml
 fi
 
 wget -q "http://radiko.jp/v2/station/stream/${channel}.xml"
@@ -152,11 +147,11 @@ rm -f ${channel}.xml
 # rtmpdump
 #
 rtmpdump -v \
-         -r ${url_parts[0]} \
-         --app ${url_parts[1]} \
-         --playpath ${url_parts[2]} \
-         -W $playerurl \
-         -C S:"" -C S:"" -C S:"" -C S:$authtoken \
-         --live \
-         --stop ${duration} \
+    	 -r ${url_parts[0]} \
+    	 --app ${url_parts[1]} \
+    	 --playpath ${url_parts[2]} \
+    	 -W $playerurl \
+    	 -C S:"" -C S:"" -C S:"" -C S:$authtoken \
+    	 --live \
+    	 --stop ${duration} \
 		 --flv ${output}_${date}.flv
