@@ -154,4 +154,4 @@ rtmpdump -v \
     	 -C S:"" -C S:"" -C S:"" -C S:$authtoken \
     	 --live \
     	 --stop ${duration} \
-		 --flv ${output}_${date}.flv
+	 --flv ${output}_${date}.flv
